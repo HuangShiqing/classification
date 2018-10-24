@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 def model(x):
-    n = 3
+    n = 2
     net_in = InputLayer(x, name='input')
     # conv1
     net = Conv2d(net_in, 64, filter_size=(3, 3), strides=(1, 1), act=tf.nn.relu, padding='SAME', name='conv1_1')

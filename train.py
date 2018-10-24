@@ -37,7 +37,7 @@ def trainning(loss, learning_rate):
 
 
 def main():
-    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('D:/DeepLearning/data/building_blocks/')
+    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('/home/hsq/DeepLearning/data/LongWoodCutPickJpg/')
 
     batch_size = Gb_batch_size
     learning_rate = Gb_learning_rate
@@ -83,7 +83,6 @@ def main():
                     save_path = saver.save(sess,
                                            final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
                     min_loss = loss
-
 
 
 if __name__ == '__main__':
