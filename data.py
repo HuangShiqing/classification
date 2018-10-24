@@ -81,21 +81,25 @@ def random_distort_image(image, hue=18, saturation=1.5, exposure=1.5):
 
 def read_data(dir):
     valid_proportion, test_proportion = 0.3, 0
-    dir_name = ['one', 'two', 'three']
 
     img_paths = list()
     labels = list()
+
     cur_dir = os.getcwd()
-    for i in range(len(dir_name)):
-        temp_img_paths = list()
-        temp_labels = list()
-        os.chdir(dir + dir_name[i])
-        all = os.listdir('.')
-        for path in all:
-            temp_img_paths.append(dir + dir_name[i] + '/' + path)
-            temp_labels.append(i)
-        img_paths = img_paths + temp_img_paths
-        labels = labels + temp_labels
+    os.chdir(dir + 'train_label/')
+    label_all = os.listdir('.')
+    os.chdir(cur_dir)
+    cur_dir = os.getcwd()
+    os.chdir(dir + '/train/')
+    img_all = os.listdir('.')
+
+    for i in range(len(img_all)):
+        if img_all[i].rstrip('jpg') + 'xml' not in label_all:
+            img_paths.append(dir + '/train/' + img_all[i])
+            labels.append(0)
+        else:
+            img_paths.append(dir + '/train/' + img_all[i])
+            labels.append(1)
 
     temp = np.array([img_paths, labels])
     temp = temp.transpose()
@@ -121,12 +125,12 @@ def read_data(dir):
         x_train = ful_image_path
         y_train = ful_labels
 
-    print("train_num: %d ,0_num: %d , 1_num: %d, 2_num: %d" % (
-        len(y_train), y_train.count(0), y_train.count(1), y_train.count(2)))
-    print("valid_num: %d ,0_num: %d , 1_num: %d, 2_num: %d" % (
-        len(y_valid), y_valid.count(0), y_valid.count(1), y_valid.count(2)))
-    print("test_num: %d ,0_num: %d , 1_num: %d, 2_num: %d" % (
-        len(y_test), y_test.count(0), y_test.count(1), y_test.count(2)))
+    print("train_num: %d ,0_num: %d , 1_num: %d" % (
+        len(y_train), y_train.count(0), y_train.count(1)))
+    print("valid_num: %d ,0_num: %d , 1_num: %d" % (
+        len(y_valid), y_valid.count(0), y_valid.count(1)))
+    print("test_num: %d ,0_num: %d , 1_num: %d" % (
+        len(y_test), y_test.count(0), y_test.count(1)))
 
     os.chdir(cur_dir)
     return x_train, y_train, x_valid, y_valid, x_test, y_test
@@ -142,7 +146,6 @@ def get_data(img_abs_path, y):
     image = random_flip(image, flip)
 
     return image, y
-    # x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('D:/DeepLearning/data/积木/')
 
 
 def data_generator(x_train, y_train):
@@ -158,6 +161,7 @@ def data_generator(x_train, y_train):
             i %= n
             x_data, y_data = get_data(x_train[i], y_train[i])
             i += 1
+            # print(y_data)
             # plt.cla()
             # plt.imshow(x_data)
             # plt.show()
@@ -173,7 +177,7 @@ def data_generator(x_train, y_train):
 
 
 if __name__ == '__main__':
-    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('D:/DeepLearning/data/building_blocks/')
+    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('/home/hsq/DeepLearning/data/LongWoodCutPickJpg/')
     a = data_generator(x_train, y_train)
     for x in a:
         print('ok')
