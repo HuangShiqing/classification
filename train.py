@@ -1,5 +1,6 @@
 import tensorflow as tf
 import time
+import os
 from model import *
 from varible import *
 from data import read_data, data_generator
@@ -37,7 +38,7 @@ def trainning(loss, learning_rate):
 
 
 def main():
-    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('/home/hsq/DeepLearning/data/LongWoodCutPickJpg/')
+    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('D:/DeepLearning/data/LongWoodCutPickJpg/')
 
     batch_size = Gb_batch_size
     learning_rate = Gb_learning_rate
@@ -53,7 +54,7 @@ def main():
     loss_op = losses(logits=logist, labels=label_pb)
     train_op = trainning(loss_op, learning_rate=learning_rate)
 
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep=100)
     summary_op = tf.summary.merge_all()
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -70,7 +71,6 @@ def main():
                 step += 1
                 step_epoch += 1
                 start_time = time.time()
-
                 loss, _, summary_str = sess.run([loss_op, train_op, summary_op],
                                                 feed_dict={input_pb: img, label_pb: lable})
                 train_writer.add_summary(summary_str, step)
@@ -78,11 +78,22 @@ def main():
                 print("Loss %fs  : Epoch %d  %d/%d: Step %d  took %fs" % (
                     loss, epoch, step_epoch, n_step_epoch, step, time.time() - start_time))
 
-                if step % save_frequency == 0 and loss < min_loss:
+                if step % 500 == 0 and loss < min_loss:
                     print("Save model " + "!" * 10)
                     save_path = saver.save(sess,
                                            final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
                     min_loss = loss
+
+                if step % save_frequency == 0:
+                    if step != save_frequency:
+                        os.remove(final_dir + temp + '.data-00000-of-00001')
+                        os.remove(final_dir + temp + '.index')
+                        os.remove(final_dir + temp + '.meta')
+
+                    print("Save model " + "!" * 10)
+                    save_path = saver.save(sess,
+                                           final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
+                    temp = 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss)
 
 
 if __name__ == '__main__':
