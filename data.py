@@ -80,63 +80,77 @@ def random_distort_image(image, hue=18, saturation=1.5, exposure=1.5):
 
 
 def read_data(dir):
-    valid_proportion, test_proportion = 0.3, 0
-
-    img_paths = list()
-    labels = list()
-
-    cur_dir = os.getcwd()
-    os.chdir(dir + 'train_label/')
-    label_all = os.listdir('.')
-    os.chdir(cur_dir)
-    cur_dir = os.getcwd()
-    os.chdir(dir + '/train/')
-    img_all = os.listdir('.')
-
-    for i in range(len(img_all)):
-        if img_all[i].rstrip('jpg') + 'xml' not in label_all:
-            img_paths.append(dir + '/train/' + img_all[i])
-            labels.append(0)
-        else:
-            img_paths.append(dir + '/train/' + img_all[i])
-            labels.append(1)
-
-    temp = np.array([img_paths, labels])
-    temp = temp.transpose()
-    np.random.seed(0)
-    np.random.shuffle(temp)
-    ful_image_path = list(temp[:, 0])
-    ful_labels = list(temp[:, 1])
-    ful_labels = [int(i) for i in ful_labels]
-
-    x_valid = []
-    y_valid = []
-    x_test = []
-    y_test = []
-    from sklearn.model_selection import train_test_split
-    if not valid_proportion == 0:
-        x_train, x_valid, y_train, y_valid = train_test_split(ful_image_path, ful_labels,
-                                                              test_size=(valid_proportion + test_proportion),
-                                                              stratify=ful_labels, random_state=1)
-        if not test_proportion == 0:
-            x_valid, x_test, y_valid, y_test = train_test_split(x_valid, y_valid, test_size=test_proportion / (
-                    valid_proportion + test_proportion), stratify=y_valid, random_state=1)
-    else:
-        x_train = ful_image_path
-        y_train = ful_labels
-
-    print("train_num: %d ,0_num: %d , 1_num: %d" % (
-        len(y_train), y_train.count(0), y_train.count(1)))
-    print("valid_num: %d ,0_num: %d , 1_num: %d" % (
-        len(y_valid), y_valid.count(0), y_valid.count(1)))
-    print("test_num: %d ,0_num: %d , 1_num: %d" % (
-        len(y_test), y_test.count(0), y_test.count(1)))
-
-    os.chdir(cur_dir)
-    return x_train, y_train, x_valid, y_valid, x_test, y_test
+    x_train, y_train, x_valid, y_valid = [], [], [], []
+    with open(dir + 'train.txt', 'r') as f:
+        for line in f.readlines():
+            x_train.append(line.strip().split(' ')[0])
+            y_train.append(line.strip().split(' ')[1])
+    with open(dir + 'valid.txt', 'r') as f:
+        for line in f.readlines():
+            x_valid.append(line.strip().split(' ')[0])
+            y_valid.append(line.strip().split(' ')[1])
+    return x_train, y_train, x_valid, y_valid
 
 
-def get_data(img_abs_path, y):
+# def read_data(dir):
+#     valid_proportion, test_proportion = 0.3, 0
+#
+#     img_paths = list()
+#     labels = list()
+#
+#     cur_dir = os.getcwd()
+#     os.chdir(dir + 'train_label/')
+#     label_all = os.listdir('.')
+#     os.chdir(cur_dir)
+#     cur_dir = os.getcwd()
+#     os.chdir(dir + '/train/')
+#     img_all = os.listdir('.')
+#
+#     for i in range(len(img_all)):
+#         if img_all[i].rstrip('jpg') + 'xml' not in label_all:
+#             img_paths.append(dir + '/train/' + img_all[i])
+#             labels.append(0)
+#         else:
+#             img_paths.append(dir + '/train/' + img_all[i])
+#             labels.append(1)
+#
+#     temp = np.array([img_paths, labels])
+#     temp = temp.transpose()
+#     np.random.seed(0)
+#     np.random.shuffle(temp)
+#     ful_image_path = list(temp[:, 0])
+#     ful_labels = list(temp[:, 1])
+#     ful_labels = [int(i) for i in ful_labels]
+#
+#     x_valid = []
+#     y_valid = []
+#     x_test = []
+#     y_test = []
+#     from sklearn.model_selection import train_test_split
+#     if not valid_proportion == 0:
+#         x_train, x_valid, y_train, y_valid = train_test_split(ful_image_path, ful_labels,
+#                                                               test_size=(valid_proportion + test_proportion),
+#                                                               stratify=ful_labels, random_state=1)
+#         if not test_proportion == 0:
+#             x_valid, x_test, y_valid, y_test = train_test_split(x_valid, y_valid, test_size=test_proportion / (
+#                     valid_proportion + test_proportion), stratify=y_valid, random_state=1)
+#     else:
+#         x_train = ful_image_path
+#         y_train = ful_labels
+#
+#     print("train_num: %d ,0_num: %d , 1_num: %d" % (
+#         len(y_train), y_train.count(0), y_train.count(1)))
+#     print("valid_num: %d ,0_num: %d , 1_num: %d" % (
+#         len(y_valid), y_valid.count(0), y_valid.count(1)))
+#     print("test_num: %d ,0_num: %d , 1_num: %d" % (
+#         len(y_test), y_test.count(0), y_test.count(1)))
+#
+#     os.chdir(cur_dir)
+#     return x_train, y_train, x_valid, y_valid, x_test, y_test
+
+
+def get_augment_data(img_abs_path, y):
+    # TODO: add more augment function to here
     image = cv2.imread(img_abs_path)
     image = image[:, :, ::-1]  # RGB image
     image = resize_img(image)
@@ -148,7 +162,7 @@ def get_data(img_abs_path, y):
     return image, y
 
 
-def data_generator(x_train, y_train):
+def data_generator(x_train, y_train, is_show=False):
     batch_size = Gb_batch_size
     n = len(y_train)
     i = 0
@@ -159,12 +173,14 @@ def data_generator(x_train, y_train):
         while len(y_datas) < batch_size:
             # for t in range(batch_size):
             i %= n
-            x_data, y_data = get_data(x_train[i], y_train[i])
+            os.chdir(Gb_data_dir)
+            x_data, y_data = get_augment_data(x_train[i], y_train[i])
             i += 1
-            # print(y_data)
-            # plt.cla()
-            # plt.imshow(x_data)
-            # plt.show()
+            if is_show == True:
+                print(y_data)
+                plt.cla()
+                plt.imshow(x_data)
+                plt.show()
 
             x_datas.append(x_data)
             y_datas.append(y_data)
@@ -177,8 +193,8 @@ def data_generator(x_train, y_train):
 
 
 if __name__ == '__main__':
-    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data('/home/hsq/DeepLearning/data/LongWoodCutPickJpg/')
-    a = data_generator(x_train, y_train)
+    x_train, y_train, x_valid, y_valid = read_data(Gb_data_dir)
+    a = data_generator(x_train, y_train, is_show=True)
     for x in a:
         print('ok')
     exit()
