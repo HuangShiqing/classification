@@ -48,7 +48,7 @@ def main():
     loss_op = losses(logits=logist, labels=label_pb)
     train_op = optimizer_sgd(loss_op, learning_rate=learning_rate)
 
-    saver = tf.train.Saver(max_to_keep=100)
+    saver = tf.train.Saver(max_to_keep=1000)
     summary_op = tf.summary.merge_all()
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -72,22 +72,20 @@ def main():
                 print("Loss %fs  : Epoch %d  %d/%d: Step %d  took %fs" % (
                     loss, epoch, step_epoch, n_step_epoch, step, time.time() - start_time))
 
-                if step % 500 == 0 and loss < min_loss:
-                    print("Save model " + "!" * 10)
-                    save_path = saver.save(sess,
-                                           final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
-                    min_loss = loss
-
                 if step % save_frequency == 0:
-                    if step != save_frequency:
-                        os.remove(final_dir + temp + '.data-00000-of-00001')
-                        os.remove(final_dir + temp + '.index')
-                        os.remove(final_dir + temp + '.meta')
-
                     print("Save model " + "!" * 10)
                     save_path = saver.save(sess,
                                            final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
-                    temp = 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss)
+                    if loss < min_loss:
+                        min_loss = loss
+                    else:
+                        try:
+                            os.remove(final_dir + temp + '.data-00000-of-00001')
+                            os.remove(final_dir + temp + '.index')
+                            os.remove(final_dir + temp + '.meta')
+                        except:
+                            pass
+                        temp = 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss)
 
 
 if __name__ == '__main__':
