@@ -32,7 +32,7 @@ def optimizer_sgd(loss, learning_rate):
 
 
 def main():
-    x_train, y_train, x_valid, y_valid, x_test, y_test = read_data(Gb_data_dir)
+    x_train, y_train, x_valid, y_valid = read_data(Gb_data_dir)
 
     batch_size = Gb_batch_size
     learning_rate = Gb_learning_rate

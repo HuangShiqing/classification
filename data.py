@@ -149,20 +149,21 @@ def read_data(dir):
 #     return x_train, y_train, x_valid, y_valid, x_test, y_test
 
 
-def get_augment_data(img_abs_path, y):
+def get_augment_data(img_abs_path, y, is_train=True):
     # TODO: add more augment function to here
     image = cv2.imread(img_abs_path)
     image = image[:, :, ::-1]  # RGB image
     image = resize_img(image)
-    # image = random_distort_image(image)
 
-    flip = np.random.randint(2)
-    image = random_flip(image, flip)
+    if is_train == True:
+        # image = random_distort_image(image)
+        flip = np.random.randint(2)
+        image = random_flip(image, flip)
 
     return image, y
 
 
-def data_generator(x_train, y_train, is_show=False):
+def data_generator(x_train, y_train, is_show=False, is_train=True):
     batch_size = Gb_batch_size
     n = len(y_train)
     i = 0
@@ -174,7 +175,8 @@ def data_generator(x_train, y_train, is_show=False):
             # for t in range(batch_size):
             i %= n
             os.chdir(Gb_data_dir)
-            x_data, y_data = get_augment_data(x_train[i], y_train[i])
+            x_data, y_data = get_augment_data(x_train[i], y_train[i], is_train=is_train)
+
             i += 1
             if is_show == True:
                 print(y_data)
