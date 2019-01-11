@@ -44,7 +44,7 @@ def main():
 
     input_pb = tf.placeholder(tf.float32, [None, 224, 224, 3])
     label_pb = tf.placeholder(tf.int32, [None])
-    logist = vgg16_model(input_pb)
+    logist, net = resnet_101(input_pb)
     loss_op = losses(logits=logist, labels=label_pb)
     train_op = optimizer_sgd(loss_op, learning_rate=learning_rate)
 
@@ -52,6 +52,13 @@ def main():
     summary_op = tf.summary.merge_all()
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+
+        try:
+            saver.restore(sess, '/media/xinje/New Volume/hsq/ckpt/birds/res0/' + 'res0ep099-step59000-loss2.526')
+            print("load ok!")
+        except:
+            print("ckpt文件不存在")
+            raise
 
         train_writer = tf.summary.FileWriter(log_dir, sess.graph)
         step = 0

@@ -156,7 +156,7 @@ def get_augment_data(img_abs_path, y, is_train=True):
     image = resize_img(image)
 
     if is_train == True:
-        # image = random_distort_image(image)
+        image = random_distort_image(image)
         flip = np.random.randint(2)
         image = random_flip(image, flip)
 
