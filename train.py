@@ -54,7 +54,8 @@ def main():
         sess.run(tf.global_variables_initializer())
 
         try:
-            saver.restore(sess, '/media/xinje/New Volume/hsq/ckpt/birds/res0/' + 'res0ep099-step59000-loss2.526')
+            saver.restore(sess,
+                          os.path.join('/media/xinje/New Volume/hsq/ckpt/birds/res0/', 'res0ep099-step59000-loss2.526'))
             print("load ok!")
         except:
             print("ckpt文件不存在")
@@ -81,15 +82,15 @@ def main():
 
                 if step % save_frequency == 0:
                     print("Save model " + "!" * 10)
-                    save_path = saver.save(sess,
-                                           final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
+                    saver.save(sess, os.path.join(final_dir,
+                                                  'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss)))
                     if loss < min_loss:
                         min_loss = loss
                     else:
                         try:
-                            os.remove(final_dir + temp + '.data-00000-of-00001')
-                            os.remove(final_dir + temp + '.index')
-                            os.remove(final_dir + temp + '.meta')
+                            os.remove(os.path.join(final_dir, temp + '.data-00000-of-00001'))
+                            os.remove(os.path.join(final_dir, temp + '.index'))
+                            os.remove(os.path.join(final_dir, temp + '.meta'))
                         except:
                             pass
                         temp = 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss)
