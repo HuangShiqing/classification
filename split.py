@@ -1,5 +1,6 @@
 import os
 import random
+from varible import *
 
 
 def split_data(data_dir, train_percent=0.8):
@@ -52,6 +53,11 @@ def read_data(dir):
 
 
 if __name__ == '__main__':
-    split_data('D:/DeepLearning/data2/birds/images/')
-    x_train, y_train, x_valid, y_valid = read_data('D:/DeepLearning/data2/birds/images/')
+    if os.path.exists(os.path.join(Gb_data_dir, 'class.txt')) or os.path.exists(
+            os.path.join(Gb_data_dir, 'train.txt')) or os.path.exists(os.path.join(Gb_data_dir, 'valid.txt')):
+        print('路径:', str(Gb_data_dir), '下class.txt train.txt valid.txt文件存在，请手动删除后再运行该程序')
+        exit()
+
+    split_data(Gb_data_dir, train_percent=0.8)
+    x_train, y_train, x_valid, y_valid = read_data(Gb_data_dir)
     exit()
