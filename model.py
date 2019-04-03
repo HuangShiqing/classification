@@ -2,7 +2,7 @@ from layer import *
 
 
 def vgg16_adjusted(x, is_train=True):
-    n = 2
+    n = 200
 
     net = InputLayer(x, name='input')
     # conv1
@@ -136,8 +136,73 @@ def resnet_101(x, is_train=True):
     return net.outputs, net
 
 
+def resnet_50(x, out_units=2, is_train=True):
+    net = InputLayer(x, name='input')
+    net = Conv_Bn(net, n_filter=64, filter_size=7, strides=2, act=tf.nn.relu, bn=True, padding='SAME',
+                  is_train=is_train, name='1')
+    net1 = MaxPool2d(net, filter_size=(2, 2), strides=(2, 2), padding='SAME', name='pool_1')
+
+    # first block ,repetitions 3
+    start_layer = 2
+    for i in range(3):
+        if i != 0:
+            net = BatchNormLayer(net1, epsilon=1e-6, act=tf.nn.relu, is_train=is_train,
+                                 name=str(i * 3 + start_layer - 1) + '_shortcut_bn')
+        net = Conv_Bn(net if i != 0 else net1, n_filter=64, filter_size=1, strides=1, act=tf.nn.relu, bn=True,
+                      padding='SAME', is_train=is_train, name=str(i * 3 + start_layer))
+        net = Conv_Bn(net, n_filter=64, filter_size=3, strides=1, act=tf.nn.relu, bn=True, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 1))
+        net = Conv_Bn(net, n_filter=256, filter_size=1, strides=1, act=tf.identity, bn=False, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 2))
+        net1 = ShortCut(net, net1, name=str(i * 3 + start_layer + 2))
+
+    # second block ,repetitions 4
+    start_layer = 11
+    for i in range(4):
+        net = BatchNormLayer(net1, epsilon=1e-6, act=tf.nn.relu, is_train=is_train,
+                             name=str(i * 3 + start_layer - 1) + '_shortcut_bn')
+        net = Conv_Bn(net, n_filter=128, filter_size=1, strides=2 if i == 0 else 1, act=tf.nn.relu, bn=True,
+                      padding='SAME', is_train=is_train, name=str(i * 3 + start_layer))
+        net = Conv_Bn(net, n_filter=128, filter_size=3, strides=1, act=tf.nn.relu, bn=True, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 1))
+        net = Conv_Bn(net, n_filter=512, filter_size=1, strides=1, act=tf.identity, bn=False, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 2))
+        net1 = ShortCut(net, net1, name=str(i * 3 + start_layer + 2))
+
+    # third block ,repetitions 23
+    start_layer = 23
+    for i in range(6):
+        net = BatchNormLayer(net1, epsilon=1e-6, act=tf.nn.relu, is_train=is_train,
+                             name=str(i * 3 + start_layer - 1) + '_shortcut_bn')
+        net = Conv_Bn(net, n_filter=256, filter_size=1, strides=2 if i == 0 else 1, act=tf.nn.relu, bn=True,
+                      padding='SAME', is_train=is_train, name=str(i * 3 + start_layer))
+        net = Conv_Bn(net, n_filter=256, filter_size=3, strides=1, act=tf.nn.relu, bn=True, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 1))
+        net = Conv_Bn(net, n_filter=1024, filter_size=1, strides=1, act=tf.identity, bn=False, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 2))
+        net1 = ShortCut(net, net1, name=str(i * 3 + start_layer + 2))
+
+    # forth block ,repetitions 3
+    start_layer = 41
+    for i in range(3):
+        net = BatchNormLayer(net1, epsilon=1e-6, act=tf.nn.relu, is_train=is_train,
+                             name=str(i * 3 + start_layer - 1) + '_shortcut_bn')
+        net = Conv_Bn(net, n_filter=512, filter_size=1, strides=2, act=tf.nn.relu, bn=True, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer))
+        net = Conv_Bn(net, n_filter=512, filter_size=3, strides=1, act=tf.nn.relu, bn=True, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 1))
+        net = Conv_Bn(net, n_filter=2048, filter_size=1, strides=1, act=tf.identity, bn=False, padding='SAME',
+                      is_train=is_train, name=str(i * 3 + start_layer + 2))
+        net1 = ShortCut(net, net1, name=str(i * 3 + start_layer + 2))
+
+    net = BatchNormLayer(net1, epsilon=1e-6, act=tf.nn.relu, is_train=is_train, name='100_shortcut_bn')
+    net = GlobalMeanPool2d(net)
+    net = DenseLayer(net, n_units=out_units, act=None, name='101_dense')
+    return net.outputs, net
+
+
 if __name__ == '__main__':
     input_pb = tf.placeholder(tf.float32, [None, 224, 224, 3])
     label_pb = tf.placeholder(tf.int32, [None])
-    logist, net = resnet_101(input_pb)
+    logist, net = resnet_50(input_pb)
     exit()
